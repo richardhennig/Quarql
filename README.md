@@ -4,7 +4,7 @@ Play cards and more to play Qwixx with friends and family without wasting paper!
 QWIXX ZETTEL – App zum Selbst-Hosten
 =====================================
 
-In diesem Ordner liegt die fertige App. Sie besteht nur aus Dateien –
+In diesem Repository liegt die fertige App. Sie besteht nur aus Dateien –
 es läuft kein Server, keine Datenbank, es werden keine Daten verschickt.
 Alle Spielstände und gespeicherten Runden bleiben auf dem Handy,
 auf dem gespielt wird.
