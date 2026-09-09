@@ -1,0 +1,1200 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Digitaler Spielzettel für Qwixx – Classic, gemixxt und Bonus. Mit oder ohne Würfeln, für alle Spieler auf einem Handy.">
+<meta name="theme-color" content="#DBE0E8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F131A" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Qwixx">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{color-scheme:light dark}
+html{-webkit-text-size-adjust:100%}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none !important}
+</style>
+<title>Qwixx Zettel</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --bg:#DBE0E8;
+  --surface:#FFFFFF;
+  --surface-2:#EFF2F7;
+  --card:#CED6E1;
+  --ink:#141922;
+  --ink-2:#3D4757;
+  --muted:#67728A;
+  --line:#B7C1D0;
+  --line-soft:#D2DAE4;
+  --accent:#D9540F;
+  --accent-ink:#FFFFFF;
+  --warn:#AF2018;
+
+  --cell-base:#FFFFFF;
+  --cell-tint:17%;
+  --tint-yellow:32%;
+  --cell-ring:52%;
+  --x-ink:#12161D;
+  --shadow-card:0 1px 2px rgba(18,24,36,.10), 0 10px 26px rgba(18,24,36,.16);
+  --shadow-bar:0 -6px 22px rgba(18,24,36,.10);
+
+  /* Balkenfarbe / Schrift- und Randfarbe je Spielfarbe */
+  --c-red:#C62B24;    --i-red:#9E1710;
+  --c-yellow:#F0B21A; --i-yellow:#8A5B00;
+  --c-green:#12793B;  --i-green:#0B5A2A;
+  --c-blue:#1B4A96;   --i-blue:#12356F;
+
+  --r:10px;
+  --gutter:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F131A; --surface:#1A202A; --surface-2:#232B37; --card:#2B3441;
+    --ink:#E9EDF4; --ink-2:#C3CBD8; --muted:#8E9AAE; --line:#3A4451; --line-soft:#2B333F;
+    --accent:#FF7C3C; --accent-ink:#1A1006; --warn:#F0736A;
+    --cell-base:#1C232E; --cell-tint:24%; --tint-yellow:36%; --cell-ring:62%; --x-ink:#F4F7FB;
+    --shadow-card:0 1px 2px rgba(0,0,0,.4), 0 12px 30px rgba(0,0,0,.5);
+    --shadow-bar:0 -6px 22px rgba(0,0,0,.5);
+    --c-red:#C4362F;    --i-red:#FF9C94;
+    --c-yellow:#C98F16; --i-yellow:#F7C960;
+    --c-green:#16713D;  --i-green:#63D493;
+    --c-blue:#2453A2;   --i-blue:#8FB6F8;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F131A; --surface:#1A202A; --surface-2:#232B37; --card:#2B3441;
+  --ink:#E9EDF4; --ink-2:#C3CBD8; --muted:#8E9AAE; --line:#3A4451; --line-soft:#2B333F;
+  --accent:#FF7C3C; --accent-ink:#1A1006; --warn:#F0736A;
+  --cell-base:#1C232E; --cell-tint:24%; --tint-yellow:36%; --cell-ring:62%; --x-ink:#F4F7FB;
+  --shadow-card:0 1px 2px rgba(0,0,0,.4), 0 12px 30px rgba(0,0,0,.5);
+  --shadow-bar:0 -6px 22px rgba(0,0,0,.5);
+  --c-red:#C4362F;    --i-red:#FF9C94;
+  --c-yellow:#C98F16; --i-yellow:#F7C960;
+  --c-green:#16713D;  --i-green:#63D493;
+  --c-blue:#2453A2;   --i-blue:#8FB6F8;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;font-size:15px;line-height:1.45;
+  overscroll-behavior:none}
+h1,h2,h3{font-family:Archivo,"Segoe UI",system-ui,sans-serif;text-wrap:balance;margin:0}
+button,textarea,input{font:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.tnum{font-variant-numeric:tabular-nums}
+
+#app{min-height:100dvh;display:flex;flex-direction:column}
+.screen{display:flex;flex-direction:column;flex:1;min-height:0}
+.wrap{width:100%;max-width:620px;margin:0 auto;padding-inline:var(--gutter)}
+.scroll{flex:1;overflow-y:auto;padding-block:22px 40px;-webkit-overflow-scrolling:touch}
+
+/* ---------- setup ---------- */
+.brand{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+.brand h1{font-size:34px;font-weight:800;letter-spacing:-.02em}
+.brand .tag{font-size:13px;color:var(--muted);font-weight:600}
+.lede{color:var(--muted);font-size:14px;margin:0 0 20px}
+.seclabel{font:600 11px/1 Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  margin:24px 0 10px;display:block}
+.quicklinks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.qlink{padding:11px 10px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line-soft);
+  font:600 13.5px/1.2 Archivo,sans-serif;color:var(--ink-2);text-align:center}
+
+.variants{display:grid;gap:8px}
+.vcard{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;background:var(--surface);
+  border:1px solid var(--line-soft);border-radius:var(--r);padding:11px 13px;text-align:left}
+.vcard[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.vcard .vn{display:block;font:700 15px/1.2 Archivo,sans-serif}
+.vcard .vd{display:block;font-size:12.5px;color:var(--muted);line-height:1.35;margin-top:3px}
+.mini{display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
+.mini i{display:block;width:36px;height:5px;border-radius:2px}
+
+.segmented{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--surface-2);
+  border:1px solid var(--line-soft);border-radius:12px;padding:4px}
+.segmented button{padding:9px 8px;border-radius:8px;font:600 14px/1.2 Archivo,sans-serif;color:var(--muted)}
+.segmented button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.seg-hint{font-size:12.5px;color:var(--muted);margin-top:7px}
+
+.plist{display:grid;gap:7px}
+.prow{display:grid;grid-template-columns:26px 1fr 38px;align-items:center;gap:8px;background:var(--surface);
+  border:1px solid var(--line-soft);border-radius:var(--r);padding:6px 8px 6px 10px}
+.prow .idx{font:700 13px/1 Archivo,sans-serif;color:var(--muted)}
+.prow input{width:100%;border:0;background:none;font:600 15px/1.4 inherit;padding:4px 0}
+.prow input:focus{outline:none}
+.prow .del{color:var(--muted);font-size:20px;line-height:1;padding:4px 8px;border-radius:6px}
+.addp{margin-top:8px;width:100%;padding:11px;border-radius:var(--r);border:1px dashed var(--line);
+  color:var(--muted);font:600 14px/1 Archivo,sans-serif}
+.addp:disabled{opacity:.4}
+
+.cta{margin-top:24px;width:100%;padding:15px;border-radius:12px;background:var(--accent);color:var(--accent-ink);
+  font:800 17px/1 Archivo,sans-serif;box-shadow:0 6px 18px color-mix(in srgb,var(--accent) 36%,transparent)}
+.cta.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:none;
+  font-weight:700;font-size:15px;padding:13px;margin-top:10px}
+
+/* ---------- topbar ---------- */
+.topbar{display:flex;align-items:center;gap:7px;padding:8px var(--gutter);background:var(--surface);
+  border-bottom:1px solid var(--line-soft);position:sticky;top:0;z-index:20}
+.topbar .vname{font:700 14px/1.1 Archivo,sans-serif;flex:1;min-width:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.iconbtn{padding:7px 10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line-soft);
+  font:600 12.5px/1 Archivo,sans-serif;color:var(--ink-2);white-space:nowrap}
+.iconbtn:disabled{opacity:.35}
+
+.ptabs{display:flex;gap:6px;overflow-x:auto;padding:8px var(--gutter);scrollbar-width:none;background:var(--bg)}
+.ptabs::-webkit-scrollbar{display:none}
+.ptab{flex:0 0 auto;padding:7px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line-soft);
+  font:600 13.5px/1 Archivo,sans-serif;color:var(--muted);display:flex;align-items:center;gap:6px}
+.ptab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.ptab .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:0 0 auto}
+.ptab .sc{font-size:12px;opacity:.75;font-variant-numeric:tabular-nums}
+
+/* ---------- Spielkarte ---------- */
+.board{flex:1;overflow-y:auto;padding:2px var(--gutter) 18px;display:flex;flex-direction:column}
+.board > .wrap{margin-block:auto;padding-inline:0}
+.sheet{background:var(--card);border-radius:14px;padding:7px;box-shadow:var(--shadow-card);
+  border:1px solid color-mix(in srgb,var(--line) 55%,transparent)}
+.rows{display:grid;gap:5px}
+.row{--rc:var(--c-red);display:grid;grid-template-columns:11px repeat(11,1fr) 23px;gap:3px;align-items:center;
+  background:var(--rc);border-radius:9px;padding:4px 5px}
+.row.red{--rc:var(--c-red)} .row.yellow{--rc:var(--c-yellow)}
+.row.green{--rc:var(--c-green)} .row.blue{--rc:var(--c-blue)}
+.row .arrow{width:0;height:0;border:5px solid transparent;border-left:7px solid rgba(0,0,0,.5);margin-left:2px}
+.row.locked{filter:saturate(.4) brightness(.9)}
+
+.cell{--cc:var(--c-red);--ci:var(--i-red);
+  position:relative;min-height:33px;border-radius:6px;display:grid;place-items:center;
+  background:#fff;background:color-mix(in srgb,var(--cc) var(--cell-tint),var(--cell-base));
+  color:var(--ci);
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--ci) var(--cell-ring),transparent);
+  font:800 clamp(12px,3.7vw,17px)/1 Archivo,sans-serif;font-variant-numeric:tabular-nums;
+  transition:transform .1s}
+.cell.red{--cc:var(--c-red);--ci:var(--i-red)}
+.cell.yellow{--cc:var(--c-yellow);--ci:var(--i-yellow);--cell-tint:var(--tint-yellow)}
+.cell.green{--cc:var(--c-green);--ci:var(--i-green)}
+.cell.blue{--cc:var(--c-blue);--ci:var(--i-blue)}
+.cell > span{position:relative;z-index:1}
+.cell.dim{opacity:.4}
+.cell:active{transform:scale(.9)}
+.cell.hint{z-index:4;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--ci) var(--cell-ring),transparent),
+  0 0 0 3px var(--accent),0 3px 10px color-mix(in srgb,var(--accent) 45%,transparent)}
+.cell.on::before,.cell.on::after{content:"";position:absolute;left:50%;top:50%;width:80%;height:3px;z-index:2;
+  border-radius:2px;background:var(--x-ink);transform:translate(-50%,-50%) rotate(44deg)}
+.cell.on::after{transform:translate(-50%,-50%) rotate(-46deg)}
+.cell.on{color:color-mix(in srgb,var(--ci) 38%,transparent)}
+.cell.pop{animation:pop .22s ease-out}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+.cell.nope{animation:nope .3s}
+@keyframes nope{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.sheet.ro .cell{cursor:default}
+
+.shp{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:var(--x-ink);stroke-width:2.4;
+  pointer-events:none;overflow:visible}
+.shp *{vector-effect:non-scaling-stroke}
+
+.lockcell{display:grid;place-items:center;height:23px;border-radius:50%;background:rgba(255,255,255,.94);
+  color:#0b0e13;position:relative}
+.lockcell.on{background:#fff}
+.lockcell svg{width:13px;height:13px;display:block}
+
+.blist{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin-top:5px;padding:5px 6px;
+  background:var(--surface);border-radius:9px;border:1px solid var(--line-soft)}
+.bl{position:relative;aspect-ratio:1;border-radius:3px;box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.3)}
+.bl.red{background:var(--c-red)} .bl.yellow{background:var(--c-yellow)}
+.bl.green{background:var(--c-green)} .bl.blue{background:var(--c-blue)}
+.bl.done::before,.bl.done::after{content:"";position:absolute;left:50%;top:50%;width:125%;height:2px;
+  background:var(--x-ink);transform:translate(-50%,-50%) rotate(45deg);border-radius:2px}
+.bl.done::after{transform:translate(-50%,-50%) rotate(-45deg)}
+
+.bbadges{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:5px;padding:6px;
+  background:var(--surface);border-radius:9px;border:1px solid var(--line-soft)}
+.bb{display:flex;flex-direction:column;align-items:center;gap:4px;padding:5px 2px;border-radius:6px;opacity:.4}
+.bb.got{opacity:1;background:color-mix(in srgb,var(--accent) 15%,transparent)}
+.bb .gl{position:relative;width:21px;height:21px}
+.bb .gl .shp{stroke:var(--ink);stroke-width:2}
+.bb.got .gl .shp{stroke:var(--accent)}
+.bb .gt{font:700 9.5px/1.15 Archivo,sans-serif;text-align:center;color:var(--ink-2)}
+
+.strip{margin-top:5px;display:grid;gap:5px}
+.pens{display:flex;align-items:center;gap:7px;padding:6px 8px;background:var(--surface);border-radius:9px;
+  border:1px solid var(--line-soft)}
+.pens .pl{font:600 10.5px/1 Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);flex:1}
+.penbox{width:26px;height:26px;border-radius:6px;border:2px solid var(--line);position:relative;background:var(--surface-2)}
+.penbox.on{border-color:var(--warn)}
+.penbox.on::before,.penbox.on::after{content:"";position:absolute;left:50%;top:50%;width:70%;height:2.5px;
+  border-radius:2px;background:var(--warn);transform:translate(-50%,-50%) rotate(45deg)}
+.penbox.on::after{transform:translate(-50%,-50%) rotate(-45deg)}
+.totals{display:grid;grid-template-columns:repeat(4,1fr) 11px .85fr 1.25fr;gap:4px;align-items:center;
+  background:var(--accent);border-radius:9px;padding:6px}
+.tbox{background:var(--surface);border-radius:6px;padding:5px 2px;text-align:center;
+  font:700 15px/1 Archivo,sans-serif;font-variant-numeric:tabular-nums;border-bottom:3px solid var(--rc,transparent)}
+.tbox.r0{--rc:var(--c-red)} .tbox.r1{--rc:var(--c-yellow)} .tbox.r2{--rc:var(--c-green)} .tbox.r3{--rc:var(--c-blue)}
+.tbox.pen{--rc:var(--muted)}
+.tsign{color:var(--accent-ink);font:800 14px/1 Archivo,sans-serif;text-align:center}
+.tbox.sum{font-size:19px;padding:5px 4px;border-bottom-color:var(--ink)}
+.tbox .dbl{display:block;font:700 8px/1 Archivo,sans-serif;color:var(--accent);letter-spacing:.06em}
+
+/* ---------- Aktionsleiste ---------- */
+.actionbar{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--line-soft);
+  box-shadow:var(--shadow-bar);padding:9px var(--gutter) max(9px,env(safe-area-inset-bottom));z-index:20}
+.tray{display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:8px;flex-wrap:wrap;min-height:32px}
+.die{width:32px;height:32px;border-radius:7px;display:grid;grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);padding:4px;gap:1px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.2),0 1px 3px rgba(0,0,0,.3)}
+.die i{border-radius:50%;background:currentColor;width:100%;aspect-ratio:1;align-self:center;justify-self:center;visibility:hidden}
+.die i.on{visibility:visible}
+.die.white{background:#F8F9FB;color:#12161D}
+.die.red{background:var(--c-red);color:#fff} .die.yellow{background:var(--c-yellow);color:#3a2600}
+.die.green{background:var(--c-green);color:#fff} .die.blue{background:var(--c-blue);color:#fff}
+.die.out{opacity:.26;position:relative}
+.die.out::after{content:"";position:absolute;left:-2px;right:-2px;top:50%;height:2.5px;background:var(--warn);transform:rotate(-20deg)}
+.die.rolling{animation:tumble .5s ease-out}
+@keyframes tumble{0%{transform:translateY(0) rotate(0)}35%{transform:translateY(-11px) rotate(150deg)}100%{transform:translateY(0) rotate(360deg)}}
+.sep{width:1px;height:22px;background:var(--line);margin:0 2px}
+
+.prompt{display:flex;align-items:center;gap:8px;margin-bottom:8px;min-height:34px}
+.pstep{font:600 11px/1 Archivo,sans-serif;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);flex:0 0 auto}
+.ptext{flex:1;font-size:13.5px;line-height:1.25;color:var(--ink-2)}
+.ptext b{font-family:Archivo;font-weight:800}
+.chips{display:inline-flex;gap:5px;flex-wrap:wrap;vertical-align:middle;margin-left:4px}
+.chip{padding:3px 8px;border-radius:999px;font:700 12.5px/1.5 Archivo,sans-serif;color:#fff}
+.chip.red{background:var(--c-red)} .chip.yellow{background:var(--c-yellow);color:#3a2600}
+.chip.green{background:var(--c-green)} .chip.blue{background:var(--c-blue)}
+.chip.off{opacity:.3;text-decoration:line-through}
+.btnrow{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:7px}
+.btn{padding:12px 8px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line-soft);
+  font:700 14px/1.1 Archivo,sans-serif;text-align:center}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn:disabled{opacity:.35}
+.btn small{display:block;font:500 11px/1.2 "Source Sans 3",sans-serif;opacity:.75;margin-top:2px}
+
+.toast{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  background:var(--ink);color:var(--bg);padding:9px 15px;border-radius:999px;font:600 13.5px/1.25 inherit;
+  z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.35);max-width:calc(100% - 32px);text-align:center;
+  opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+.toast.ingame{bottom:calc(158px + env(safe-area-inset-bottom))}
+
+/* ---------- Ergebnis / Archiv ---------- */
+.res-head{margin-bottom:16px}
+.res-head h2{font-size:26px;font-weight:800}
+.res-head p{color:var(--muted);font-size:14px;margin:4px 0 0}
+.rlist{display:grid;gap:8px}
+.rrow{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;background:var(--surface);
+  border:1px solid var(--line-soft);border-radius:var(--r);padding:11px 13px;text-align:left;width:100%}
+.rrow.win{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.rrow .rk{font:800 17px/1 Archivo,sans-serif;color:var(--muted)}
+.rrow.win .rk{color:var(--accent)}
+.rrow .nm{display:block;font:700 16px/1.2 Archivo,sans-serif}
+.rrow .bd{display:block;font-size:12px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.rrow .tot{font:800 24px/1 Archivo,sans-serif;font-variant-numeric:tabular-nums}
+
+.notebox{margin-top:20px;background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:12px}
+.notebox label{display:block;font:600 11px/1 Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:8px}
+.notebox textarea{width:100%;min-height:92px;resize:vertical;border:1px solid var(--line-soft);border-radius:8px;
+  background:var(--surface-2);padding:10px;font-size:14.5px;line-height:1.45}
+.notebox textarea:focus{outline:none;border-color:var(--accent)}
+
+.empty{text-align:center;color:var(--muted);font-size:14px;padding:40px 10px}
+.arow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:var(--surface);
+  border:1px solid var(--line-soft);border-radius:var(--r);padding:12px 13px;text-align:left;width:100%}
+.arow .at{display:block;font:700 15px/1.2 Archivo,sans-serif}
+.arow .am{display:block;font-size:12.5px;color:var(--muted);margin-top:3px}
+.arow .an{display:block;font-size:12.5px;color:var(--ink-2);margin-top:6px;font-style:italic;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.arow .ago{font:700 13px/1 Archivo,sans-serif;color:var(--muted)}
+.notecard{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:13px;margin-top:12px}
+.notecard h3{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px}
+.notecard p{margin:0;font-size:14.5px;white-space:pre-wrap;color:var(--ink-2)}
+
+/* ---------- Anleitung ---------- */
+dialog{border:0;padding:0;background:transparent;max-width:100%;max-height:100%}
+dialog::backdrop{background:rgba(8,11,16,.6)}
+.modal{background:var(--surface);color:var(--ink);border-radius:16px;width:min(600px,calc(100vw - 20px));
+  max-height:min(86dvh,860px);overflow-y:auto;padding:0;margin:auto}
+.modal-head{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--line-soft);
+  padding:15px 16px 11px;display:flex;align-items:center;gap:10px;z-index:2}
+.modal-head h3{flex:1;font-size:18px;font-weight:800}
+.modal-body{padding:4px 16px 20px}
+.rtabs{display:flex;gap:5px;overflow-x:auto;padding:10px 16px;scrollbar-width:none;
+  border-bottom:1px solid var(--line-soft);position:sticky;top:52px;background:var(--surface);z-index:1}
+.rtabs::-webkit-scrollbar{display:none}
+.rtab{flex:0 0 auto;padding:6px 11px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line-soft);
+  font:600 12.5px/1 Archivo,sans-serif;color:var(--muted)}
+.rtab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.modal h4{font:800 13px/1.3 Archivo,sans-serif;margin:20px 0 6px;color:var(--accent);
+  letter-spacing:.06em;text-transform:uppercase}
+.modal h4:first-child{margin-top:12px}
+.modal p,.modal li{font-size:14.5px;color:var(--ink-2);margin:7px 0;line-height:1.5}
+.modal ul{padding-left:19px;margin:7px 0}
+.modal .note{background:var(--surface-2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;
+  padding:9px 12px;margin:11px 0;font-size:13.5px}
+.ptable{width:100%;border-collapse:collapse;margin:10px 0;font-variant-numeric:tabular-nums}
+.ptable td{border:1px solid var(--line-soft);padding:5px 4px;text-align:center;font-size:12.5px}
+.ptable tr:first-child td{background:var(--surface-2);font-weight:700}
+.tblwrap{overflow-x:auto}
+.modal .close{margin:10px 16px 18px;width:calc(100% - 32px);padding:12px;border-radius:10px;
+  background:var(--surface-2);border:1px solid var(--line-soft);font:700 15px/1 Archivo,sans-serif}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+@media (min-height:740px){ .cell{min-height:38px} .lockcell{height:26px} }
+@media (min-height:860px){ .cell{min-height:42px} }
+@media (min-width:620px){
+  .cell{min-height:46px}
+  .row{grid-template-columns:14px repeat(11,1fr) 28px;gap:4px;padding:5px 7px}
+  .lockcell{height:28px}.lockcell svg{width:16px;height:16px}
+  .die{width:38px;height:38px}
+}
+</style>
+
+</head>
+<body>
+<div id="app">
+
+<section id="scr-setup" class="screen">
+  <div class="scroll"><div class="wrap">
+    <div class="brand"><h1>Qwixx</h1><span class="tag">Digitaler Spielzettel</span></div>
+    <p class="lede">Ein Handy für alle: Jeder bekommt seinen eigenen Zettel, gewürfelt wird auf Wunsch gleich mit.</p>
+
+    <div class="quicklinks">
+      <button class="qlink" id="ql-rules">Anleitung lesen</button>
+      <button class="qlink" id="ql-arch">Gespeicherte Runden</button>
+    </div>
+
+    <span class="seclabel">Spielvariante</span>
+    <div class="variants" id="variants"></div>
+
+    <span class="seclabel">Spielweise</span>
+    <div class="segmented" id="modeseg">
+      <button data-mode="dice" aria-pressed="true">Mit Würfeln</button>
+      <button data-mode="cards" aria-pressed="false">Nur Zettel</button>
+    </div>
+    <p class="seg-hint" id="modehint"></p>
+
+    <span class="seclabel">Spieler</span>
+    <div class="plist" id="plist"></div>
+    <button class="addp" id="addp">+ Spieler hinzufügen</button>
+
+    <button class="cta" id="start">Spiel starten</button>
+    <button class="cta ghost" id="resume" hidden>Laufendes Spiel fortsetzen</button>
+  </div></div>
+</section>
+
+<section id="scr-game" class="screen" hidden>
+  <div class="topbar">
+    <button class="iconbtn" id="btn-menu">Menü</button>
+    <span class="vname" id="vname"></span>
+    <button class="iconbtn" id="btn-undo">Rückgängig</button>
+    <button class="iconbtn" id="btn-rules">Regeln</button>
+  </div>
+  <div class="ptabs" id="ptabs"></div>
+  <div class="board"><div class="wrap"><div class="sheet" id="sheet"></div></div></div>
+  <div class="actionbar"><div class="wrap" style="padding-inline:0">
+    <div class="tray" id="tray"></div>
+    <div class="prompt" id="prompt"></div>
+    <div class="btnrow" id="btnrow"></div>
+  </div></div>
+</section>
+
+<section id="scr-res" class="screen" hidden>
+  <div class="scroll"><div class="wrap">
+    <div class="res-head"><h2 id="res-title">Endstand</h2><p id="res-sub"></p></div>
+    <div class="rlist" id="rlist"></div>
+    <div class="notebox">
+      <label for="notes">Notizen zur Runde</label>
+      <textarea id="notes" placeholder="Wer war dabei, was ist passiert, besondere Momente …"></textarea>
+    </div>
+    <button class="cta" id="savearch">Runde speichern</button>
+    <button class="cta ghost" id="again">Neue Runde, gleiche Spieler</button>
+    <button class="cta ghost" id="tomenu">Zurück zum Start</button>
+  </div></div>
+</section>
+
+<section id="scr-arch" class="screen" hidden>
+  <div class="topbar">
+    <button class="iconbtn" id="arch-back">Zurück</button>
+    <span class="vname">Gespeicherte Runden</span>
+  </div>
+  <div class="scroll"><div class="wrap"><div class="rlist" id="archlist"></div></div></div>
+</section>
+
+<section id="scr-det" class="screen" hidden>
+  <div class="topbar">
+    <button class="iconbtn" id="det-back">Zurück</button>
+    <span class="vname" id="det-title"></span>
+    <button class="iconbtn" id="det-del">Löschen</button>
+  </div>
+  <div class="ptabs" id="det-tabs"></div>
+  <div class="scroll" style="padding-block:6px 30px"><div class="wrap">
+    <div class="sheet ro" id="det-sheet"></div>
+    <div id="det-notes"></div>
+  </div></div>
+</section>
+
+<div class="toast" id="toast"></div>
+<dialog id="rules"><div class="modal">
+  <div class="modal-head"><h3>Spielanleitung</h3><button class="iconbtn" id="rclose2">Schließen</button></div>
+  <div class="rtabs" id="rtabs"></div>
+  <div class="modal-body" id="rulesbody"></div>
+  <button class="close" id="rclose">Schließen</button>
+</div></dialog>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ Kartendaten ============ */
+var RED="red",YEL="yellow",GRN="green",BLU="blue";
+var COLNAME={red:"Rot",yellow:"Gelb",green:"Grün",blue:"Blau"};
+var POINTS=[0,1,3,6,10,15,21,28,36,45,55,66,78];
+var UP=[2,3,4,5,6,7,8,9,10,11,12], DN=[12,11,10,9,8,7,6,5,4,3,2];
+
+function mono(nums,col){return nums.map(function(n){return {n:n,c:col};});}
+function mix(list){return list.map(function(p){return {n:p[0],c:p[1]};});}
+function classicRows(){
+  return [{lock:RED,cells:mono(UP,RED)},{lock:YEL,cells:mono(UP,YEL)},
+          {lock:GRN,cells:mono(DN,GRN)},{lock:BLU,cells:mono(DN,BLU)}];
+}
+function tag(rows,map){
+  Object.keys(map).forEach(function(r){
+    var m=map[r];
+    rows[r].cells.forEach(function(cell){ if(m[cell.n]!==undefined) cell.b=m[cell.n]; });
+  });
+  return rows;
+}
+
+var VARIANTS={
+  classic:{id:"classic",name:"Qwixx Classic",short:"Classic",
+    desc:"Das Originalspiel: vier Farbreihen, von links nach rechts abkreuzen.",
+    bonus:null,rows:classicRows()},
+  gemixxtA:{id:"gemixxtA",name:"Qwixx gemixxt – Variante A",short:"gemixxt A",
+    desc:"Zahlen laufen wie im Original, die Farben sind in Segmente aufgeteilt.",
+    bonus:null,rows:[
+      {lock:RED,cells:mix([[2,YEL],[3,YEL],[4,YEL],[5,BLU],[6,BLU],[7,BLU],[8,GRN],[9,GRN],[10,GRN],[11,RED],[12,RED]])},
+      {lock:YEL,cells:mix([[2,RED],[3,RED],[4,GRN],[5,GRN],[6,GRN],[7,GRN],[8,GRN],[9,GRN],[10,YEL],[11,YEL],[12,YEL]])},
+      {lock:GRN,cells:mix([[12,BLU],[11,BLU],[10,BLU],[9,YEL],[8,YEL],[7,YEL],[6,RED],[5,RED],[4,RED],[3,GRN],[2,GRN]])},
+      {lock:BLU,cells:mix([[12,GRN],[11,GRN],[10,RED],[9,RED],[8,RED],[7,RED],[6,YEL],[5,YEL],[4,BLU],[3,BLU],[2,BLU]])}
+    ]},
+  gemixxtB:{id:"gemixxtB",name:"Qwixx gemixxt – Variante B",short:"gemixxt B",
+    desc:"Feste Farbreihen, aber die Zahlen stehen wild durcheinander.",
+    bonus:null,rows:[
+      {lock:RED,cells:mono([10,6,2,8,3,4,12,5,9,7,11],RED)},
+      {lock:YEL,cells:mono([9,12,4,6,7,2,5,8,11,3,10],YEL)},
+      {lock:GRN,cells:mono([8,2,10,12,6,9,7,4,5,11,3],GRN)},
+      {lock:BLU,cells:mono([5,7,11,9,12,3,8,10,2,6,4],BLU)}
+    ]},
+  bonusA:{id:"bonusA",name:"Qwixx Bonus – Variante A",short:"Bonus A",
+    desc:"12 Bonusfelder lösen Kreuze über die Bonusliste aus. Kettenreaktionen möglich.",
+    bonus:"A",bonusList:[RED,YEL,GRN,BLU,GRN,RED,BLU,YEL,RED,YEL,BLU,GRN],
+    rows:tag(classicRows(),{0:{3:"sq",6:"sq",9:"sq"},1:{5:"sq",8:"sq",11:"sq"},
+                            2:{11:"sq",7:"sq",4:"sq"},3:{10:"sq",8:"sq",5:"sq"}})},
+  bonusB:{id:"bonusB",name:"Qwixx Bonus – Variante B",short:"Bonus B",
+    desc:"Fünf Bonustypen, jeder zweimal. Beide Felder eines Typs bringen den Bonus.",
+    bonus:"B",rows:tag(classicRows(),{0:{6:"oct",8:"sq"},1:{3:"star",7:"dia",11:"circ"},
+                                      2:{9:"circ",5:"star"},3:{10:"sq",7:"dia",4:"oct"}})}
+};
+var VORDER=["classic","gemixxtA","gemixxtB","bonusA","bonusB"];
+
+function starPts(spikes,ro,ri){
+  var p=[];
+  for(var i=0;i<spikes*2;i++){
+    var r=(i%2)?ri:ro, a=(-90+i*(180/spikes))*Math.PI/180;
+    p.push((50+r*Math.cos(a)).toFixed(1)+","+(50+r*Math.sin(a)).toFixed(1));
+  }
+  return p.join(" ");
+}
+var SHP={
+  circ:'<ellipse cx="50" cy="50" rx="46" ry="46"/>',
+  sq  :'<rect x="4" y="4" width="92" height="92" rx="5"/>',
+  dia :'<polygon points="50,4 96,50 50,96 4,50"/>',
+  oct :'<polygon points="31,4 69,4 96,31 96,69 69,96 31,96 4,69 4,31"/>',
+  star:'<polygon points="'+starPts(11,47,33)+'"/>'
+};
+function shapeSvg(s){
+  return '<svg class="shp" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+SHP[s]+'</svg>';
+}
+var SHAPES={
+  circ:{label:"2 Kreuze",note:"Sofort 2 Felder in der Reihe mit den wenigsten Kreuzen ankreuzen."},
+  dia :{label:"4 Farben",note:"Sofort in jeder Reihe das nächstmögliche Feld ankreuzen."},
+  sq  :{label:"×2",      note:"Die Reihe mit den wenigsten Kreuzen zählt doppelt."},
+  oct :{label:"+13",     note:"13 Zusatzpunkte."},
+  star:{label:"Fehl. 0", note:"Deine Fehlwürfe zählen keine Minuspunkte."}
+};
+
+/* ============ State ============ */
+var S=null, undoStack=[], LS="qwixx.state.v2", LSA="qwixx.archive.v1";
+var setup={variant:"classic",mode:"dice",names:["Spieler 1","Spieler 2"]};
+var detail=null, detailView=0, rulesTab="basis";
+
+function V(){return VARIANTS[S.variant];}
+function rowsOf(){return V().rows;}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+
+function newPlayer(name){
+  var m=[];for(var r=0;r<4;r++){var a=[];for(var i=0;i<11;i++)a.push(false);m.push(a);}
+  return {name:name,marks:m,pen:0,bl:[],bonus:{}};
+}
+function startGame(){
+  S={variant:setup.variant,mode:setup.mode,
+     players:setup.names.map(function(n,i){return newPlayer((n||"").trim()||("Spieler "+(i+1)));}),
+     active:0,view:0,roll:null,turn:null,ended:false};
+  if(V().bonus==="A") S.players.forEach(function(p){ p.bl=V().bonusList.map(function(){return false;}); });
+  undoStack=[]; save(); show("game"); renderAll();
+}
+function save(){ try{ localStorage.setItem(LS,JSON.stringify(S)); }catch(e){} }
+function load(){ try{ var r=localStorage.getItem(LS); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function archive(){ try{ var r=localStorage.getItem(LSA); return r?JSON.parse(r):[]; }catch(e){ return []; } }
+function saveArchive(a){ try{ localStorage.setItem(LSA,JSON.stringify(a)); }catch(e){ toast("Speicher voll"); } }
+
+/* ============ Abgeleiteter Zustand ============ */
+/* Eine Reihe ist genau dann geschlossen, wenn irgendein Spieler das letzte Feld angekreuzt hat.
+   Dadurch öffnet sich die Reihe automatisch wieder, sobald dieses Kreuz zurückgenommen wird. */
+function lockedIn(players,r){
+  for(var i=0;i<players.length;i++) if(players[i].marks[r][10]) return true;
+  return false;
+}
+function isLocked(r){ return lockedIn(S.players,r); }
+function lockCount(players){ var n=0; for(var r=0;r<4;r++) if(lockedIn(players,r)) n++; return n; }
+function outIn(v,players,col){
+  for(var r=0;r<4;r++) if(v.rows[r].lock===col && lockedIn(players,r)) return true;
+  return false;
+}
+function isOut(col){ return outIn(V(),S.players,col); }
+function gameOver(){
+  if(S.ended) return true;
+  if(lockCount(S.players)>=2) return true;
+  for(var i=0;i<S.players.length;i++) if(S.players[i].pen>=4) return true;
+  return false;
+}
+function endReason(){
+  if(lockCount(S.players)>=2) return "Zwei Reihen sind geschlossen.";
+  for(var i=0;i<S.players.length;i++) if(S.players[i].pen>=4) return S.players[i].name+" hat den 4. Fehlwurf.";
+  return "Manuell beendet.";
+}
+
+/* ============ Regeln ============ */
+function lastIdx(p,r){ for(var i=10;i>=0;i--) if(p.marks[r][i]) return i; return -1; }
+function cnt(p,r){ var c=0; for(var i=0;i<11;i++) if(p.marks[r][i]) c++; return c; }
+function crossesInRow(p,r){ return cnt(p,r)+(p.marks[r][10]?1:0); }
+function canMark(p,r,i,ignoreFive){
+  if(isLocked(r)) return false;
+  if(p.marks[r][i]) return false;
+  if(i<=lastIdx(p,r)) return false;
+  if(i===10 && !ignoreFive && cnt(p,r)<5) return false;
+  return true;
+}
+function nextFree(p,r,ignoreFive){
+  var i=lastIdx(p,r)+1;
+  if(i>10) return -1;
+  return canMark(p,r,i,ignoreFive)?i:-1;
+}
+function pushUndo(){
+  undoStack.push({players:clone(S.players),turn:clone(S.turn),roll:clone(S.roll),
+                  active:S.active,view:S.view,ended:S.ended});
+  if(undoStack.length>60) undoStack.shift();
+}
+function doUndo(){
+  if(!undoStack.length){ toast("Nichts rückgängig zu machen"); return; }
+  var u=undoStack.pop();
+  S.players=u.players; S.turn=u.turn; S.roll=u.roll; S.active=u.active; S.view=u.view; S.ended=u.ended;
+  save(); renderAll();
+}
+
+function markCell(pi,r,i){
+  var p=S.players[pi];
+  var wasLocked=isLocked(r);
+  p.marks[r][i]=true;
+  flash(r,i);
+  if(i===10 && !wasLocked) toast(COLNAME[rowsOf()[r].lock]+" ist geschlossen – Würfel raus");
+  var cell=rowsOf()[r].cells[i];
+  if(cell.b){
+    if(V().bonus==="A") bonusA(pi);
+    else if(V().bonus==="B") bonusB(pi,cell.b);
+  }
+}
+function unmarkCell(pi,r,i){
+  var p=S.players[pi];
+  var was=isLocked(r);
+  p.marks[r][i]=false;
+  if(was && !isLocked(r)) toast(COLNAME[rowsOf()[r].lock]+" ist wieder offen");
+}
+
+/* Bonusliste: ein Feld ist "verbraucht" (p.bl) oder "verfallen" (Farbe geschlossen). */
+function blVoid(k){ return isOut(V().bonusList[k]); }
+function bonusA(pi){
+  var p=S.players[pi], v=V(), k=-1;
+  for(var j=0;j<p.bl.length;j++){ if(!p.bl[j] && !blVoid(j)){ k=j; break; } }
+  if(k<0) return;
+  p.bl[k]=true;
+  var r=[RED,YEL,GRN,BLU].indexOf(v.bonusList[k]);
+  if(r<0 || isLocked(r)) return;
+  var i=nextFree(p,r,true);
+  if(i<0) return;
+  markCell(pi,r,i);
+}
+function bonusB(pi,shape){
+  var p=S.players[pi];
+  if(p.bonus[shape]) return;
+  var found=0;
+  rowsOf().forEach(function(row,r){
+    row.cells.forEach(function(c,i){ if(c.b===shape && p.marks[r][i]) found++; });
+  });
+  if(found<2) return;
+  p.bonus[shape]=true;
+  if(shape==="oct"||shape==="sq"||shape==="star"){ toast("Bonus: "+SHAPES[shape].note); return; }
+  if(shape==="dia"){
+    toast("Bonus: in jeder Reihe ein Kreuz");
+    for(var r=0;r<4;r++){ var i=nextFree(p,r,true); if(i>=0) markCell(pi,r,i); }
+    return;
+  }
+  if(shape==="circ"){
+    toast("Bonus: 2 Kreuze in der schwächsten Reihe");
+    for(var t=0;t<2;t++){
+      var best=-1,bc=99;
+      for(var rr=0;rr<4;rr++){
+        if(nextFree(p,rr,true)<0) continue;
+        var c=crossesInRow(p,rr);
+        if(c<bc){ bc=c; best=rr; }
+      }
+      if(best<0) return;
+      markCell(pi,best,nextFree(p,best,true));
+    }
+  }
+}
+
+/* ============ Wertung ============ */
+function scoreOf(p,v,players){
+  var rows=[],i;
+  for(var r=0;r<4;r++){
+    var c=cnt(p,r)+(p.marks[r][10]?1:0);
+    rows.push({crosses:c,pts:POINTS[Math.min(c,12)],dbl:false});
+  }
+  if(v.bonus==="B" && p.bonus && p.bonus.sq){
+    var min=99,bi=-1;
+    for(i=0;i<4;i++){ if(rows[i].crosses<min){ min=rows[i].crosses; bi=i; } }
+    if(bi>=0){ rows[bi].dbl=true; rows[bi].pts*=2; }
+  }
+  var sum=rows.reduce(function(a,x){return a+x.pts;},0);
+  var extra=(v.bonus==="B"&&p.bonus&&p.bonus.oct)?13:0;
+  var minus=(v.bonus==="B"&&p.bonus&&p.bonus.star)?0:p.pen*5;
+  return {rows:rows,extra:extra,minus:minus,total:sum+extra-minus};
+}
+function score(p){ return scoreOf(p,V(),S.players); }
+
+/* ============ Würfel ============ */
+function d6(){ return 1+Math.floor(Math.random()*6); }
+function rollDice(){
+  pushUndo();
+  var rl={w1:d6(),w2:d6(),red:d6(),yellow:d6(),green:d6(),blue:d6()};
+  [RED,YEL,GRN,BLU].forEach(function(c){ if(isOut(c)) rl[c]=null; });
+  S.roll=rl;
+  S.turn={a1:{},a1skip:{},a2:false,a2skip:false,crosses:{}};
+  S.view=S.active;
+  save(); renderAll(true);
+}
+function whiteSum(){ return S.roll?S.roll.w1+S.roll.w2:null; }
+function comboSums(col){
+  if(!S.roll||S.roll[col]==null) return [];
+  var a=S.roll.w1+S.roll[col], b=S.roll.w2+S.roll[col];
+  return a===b?[a]:[a,b];
+}
+function matchesWhite(cell){ return !!S.roll && cell.n===whiteSum(); }
+function matchesCombo(cell){ return !!S.roll && !isOut(cell.c) && comboSums(cell.c).indexOf(cell.n)>=0; }
+
+/* ============ Zug ============ */
+function tapCell(r,i){
+  var pi=S.view, p=S.players[pi], cell=rowsOf()[r].cells[i];
+
+  /* Zurücknehmen ist immer erlaubt – auch das Schloss-Kreuz und auch nach Spielende. */
+  if(p.marks[r][i]){
+    if(i===lastIdx(p,r)){ pushUndo(); unmarkCell(pi,r,i); save(); renderAll(); }
+    else { toast("Nur das letzte Kreuz einer Reihe lässt sich zurücknehmen"); shake(r,i); }
+    return;
+  }
+  if(gameOver()){ toast("Das Spiel ist zu Ende – Kreuze lassen sich noch zurücknehmen"); return; }
+  if(!canMark(p,r,i,false)){
+    if(isLocked(r)) toast("Diese Reihe ist geschlossen");
+    else if(i===10) toast("Erst 5 Kreuze in dieser Reihe, dann das Schloss");
+    else toast("Nur nach rechts – links davon ist schon gekreuzt");
+    shake(r,i); return;
+  }
+  if(S.mode==="cards"){ pushUndo(); markCell(pi,r,i); save(); renderAll(); return; }
+  if(!S.roll){ toast("Erst würfeln"); shake(r,i); return; }
+
+  var T=S.turn, isActive=(pi===S.active);
+  if(!T.a1[pi] && !T.a1skip[pi] && matchesWhite(cell)){
+    pushUndo(); T.a1[pi]=true; T.crosses[pi]=(T.crosses[pi]||0)+1;
+    markCell(pi,r,i); save(); renderAll(); return;
+  }
+  if(isActive && (T.a1[pi]||T.a1skip[pi]) && !T.a2 && !T.a2skip && matchesCombo(cell)){
+    pushUndo(); T.a2=true; T.crosses[pi]=(T.crosses[pi]||0)+1;
+    markCell(pi,r,i); save(); renderAll(); return;
+  }
+  if(isActive && !T.a1[pi] && !T.a1skip[pi] && matchesCombo(cell)) toast("Erst die weiße Summe entscheiden – dann die Farbkombi");
+  else if(T.a1[pi]||T.a1skip[pi]) toast(isActive?"Passt nicht zu deinen Farbkombis":"Du hast diesen Wurf schon genutzt");
+  else toast("Diese Zahl liegt nicht im Wurf");
+  shake(r,i);
+}
+function endTurn(){
+  var ap=S.active;
+  pushUndo();
+  if(!S.turn.crosses[ap]){
+    S.players[ap].pen++;
+    toast(S.players[ap].name+" bekommt einen Fehlwurf (−5)");
+  }
+  S.roll=null; S.turn=null;
+  S.active=(S.active+1)%S.players.length;
+  S.view=S.active;
+  save(); renderAll();
+  if(gameOver()) setTimeout(showResults,700);
+}
+function togglePen(pi,k){
+  pushUndo();
+  var p=S.players[pi];
+  p.pen=(p.pen===k+1)?k:k+1;
+  save(); renderAll();
+  if(gameOver()) setTimeout(showResults,600);
+}
+
+/* ============ Render-Helfer ============ */
+var $=function(s){return document.querySelector(s);};
+var toastT=null;
+function toast(msg){
+  var t=$("#toast"); t.textContent=msg;
+  t.classList.toggle("ingame",!$("#scr-game").hidden);
+  t.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(function(){t.classList.remove("show");},2100);
+}
+function flash(r,i){
+  requestAnimationFrame(function(){
+    var el=document.querySelector('#sheet .cell[data-r="'+r+'"][data-i="'+i+'"]');
+    if(el){ el.classList.add("pop"); setTimeout(function(){el.classList.remove("pop");},240); }
+  });
+}
+function shake(r,i){
+  var el=document.querySelector('#sheet .cell[data-r="'+r+'"][data-i="'+i+'"]');
+  if(el){ el.classList.add("nope"); setTimeout(function(){el.classList.remove("nope");},320); }
+}
+function show(which){
+  ["setup","game","res","arch","det"].forEach(function(k){ $("#scr-"+k).hidden = (k!==which); });
+}
+var LOCKSVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">'+
+  '<rect x="4" y="10.5" width="16" height="10" rx="2.5" fill="currentColor" stroke="none"/>'+
+  '<path d="M8 10.5V7.6a4 4 0 0 1 7.5-1.9"/></svg>';
+
+/* Karte als HTML – wird sowohl live als auch für gespeicherte Runden benutzt. */
+function sheetHTML(p,v,players,opts){
+  opts=opts||{};
+  var h='<div class="rows">';
+  v.rows.forEach(function(row,r){
+    var locked=lockedIn(players,r);
+    h+='<div class="row '+row.lock+(locked?" locked":"")+'"><span class="arrow"></span>';
+    row.cells.forEach(function(cell,i){
+      var on=p.marks[r][i];
+      var cls="cell "+cell.c+(on?" on":"");
+      var legal=!on && !locked && i>lastIdx(p,r) && !(i===10 && cnt(p,r)<5);
+      if(!opts.readonly && opts.hint && legal && opts.hint(cell)) cls+=" hint";
+      if(!on && !legal) cls+=" dim";
+      var inner=cell.b?shapeSvg(cell.b):"";
+      h+='<button class="'+cls+'" data-r="'+r+'" data-i="'+i+'"'+(opts.readonly?' disabled':'')+'>'+
+         inner+'<span>'+cell.n+'</span></button>';
+    });
+    h+='<span class="lockcell'+(p.marks[r][10]?" on":"")+'">'+LOCKSVG+'</span></div>';
+  });
+  h+='</div>';
+
+  if(v.bonus==="A"){
+    h+='<div class="blist">';
+    v.bonusList.forEach(function(c,k){
+      var done=(p.bl&&p.bl[k])||outIn(v,players,c);
+      h+='<span class="bl '+c+(done?" done":"")+'"></span>';
+    });
+    h+='</div>';
+  }
+  if(v.bonus==="B"){
+    h+='<div class="bbadges">';
+    ["circ","dia","sq","oct","star"].forEach(function(s){
+      h+='<span class="bb'+((p.bonus&&p.bonus[s])?" got":"")+'"><span class="gl">'+shapeSvg(s)+
+         '</span><span class="gt">'+SHAPES[s].label+'</span></span>';
+    });
+    h+='</div>';
+  }
+
+  var sc=scoreOf(p,v,players);
+  h+='<div class="strip"><div class="pens"><span class="pl">Fehlwürfe je −5</span>';
+  for(var k=0;k<4;k++)
+    h+='<button class="penbox'+(p.pen>k?" on":"")+'" data-pen="'+k+'"'+(opts.readonly?' disabled':'')+
+       ' aria-label="Fehlwurf '+(k+1)+'"></button>';
+  h+='</div><div class="totals">';
+  sc.rows.forEach(function(x,i){ h+='<span class="tbox r'+i+' tnum">'+x.pts+(x.dbl?'<span class="dbl">×2</span>':'')+'</span>'; });
+  h+='<span class="tsign">−</span><span class="tbox pen tnum">'+sc.minus+'</span>'+
+     '<span class="tbox sum tnum">'+sc.total+'</span></div></div>';
+  return h;
+}
+
+/* ============ Spiel-Rendering ============ */
+function renderAll(rolled){
+  if(!S) return;
+  $("#vname").textContent=V().short+(S.mode==="cards"?" · nur Zettel":"");
+  $("#btn-undo").disabled=!undoStack.length;
+  renderTabs(); renderSheet(); renderBar(rolled);
+}
+function renderTabs(){
+  var h="";
+  S.players.forEach(function(p,i){
+    h+='<button class="ptab" data-p="'+i+'" aria-pressed="'+(i===S.view)+'">'+
+       (S.mode==="dice"&&i===S.active?'<span class="dot"></span>':'')+
+       esc(p.name)+' <span class="sc tnum">'+score(p).total+'</span></button>';
+  });
+  $("#ptabs").innerHTML=h;
+}
+function renderSheet(){
+  var p=S.players[S.view], T=S.turn, isActive=(S.view===S.active);
+  var canA1=S.mode==="dice"&&S.roll&&T&&!T.a1[S.view]&&!T.a1skip[S.view];
+  var canA2=S.mode==="dice"&&S.roll&&T&&isActive&&(T.a1[S.view]||T.a1skip[S.view])&&!T.a2&&!T.a2skip;
+  $("#sheet").innerHTML=sheetHTML(p,V(),S.players,{hint:function(cell){
+    return (canA1&&matchesWhite(cell))||(canA2&&matchesCombo(cell));
+  }});
+}
+function dieHTML(col,val,out){
+  var PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+  var on=PIPS[val]||[], s='<span class="die '+col+(out?" out":"")+'">';
+  for(var i=0;i<9;i++) s+='<i class="'+(on.indexOf(i)>=0?"on":"")+'"></i>';
+  return s+'</span>';
+}
+function renderBar(rolled){
+  var tray=$("#tray"), prompt=$("#prompt"), row=$("#btnrow"), over=gameOver();
+
+  if(S.mode==="cards"){
+    tray.innerHTML='<span style="font-size:13.5px;color:var(--muted)">'+
+      (over?esc(endReason()):"Freies Ankreuzen – ihr würfelt selbst")+'</span>';
+    prompt.innerHTML='<span class="ptext">Tippt auf ein Feld. Ein Tipp auf das letzte Kreuz einer Reihe nimmt es wieder zurück.</span>';
+    row.innerHTML='<button class="btn" id="b-next">Nächster Spieler</button>'+
+                  '<button class="btn primary" id="b-eval">Auswerten</button>';
+    $("#b-next").onclick=function(){ S.view=(S.view+1)%S.players.length; save(); renderAll(); };
+    $("#b-eval").onclick=function(){ S.ended=true; save(); showResults(); };
+    return;
+  }
+
+  if(over && !S.roll){
+    tray.innerHTML='<span style="font-size:13.5px;color:var(--muted)">Spiel beendet</span>';
+    prompt.innerHTML='<span class="ptext">'+esc(endReason())+' Ein Kreuz lässt sich weiterhin zurücknehmen, dann geht es weiter.</span>';
+    row.innerHTML='<button class="btn primary" id="b-eval">Zur Auswertung</button>';
+    $("#b-eval").onclick=showResults;
+    return;
+  }
+  if(!S.roll){
+    tray.innerHTML='<span style="font-size:13.5px;color:var(--muted)"><b style="font-family:Archivo">'+
+      esc(S.players[S.active].name)+'</b> ist am Zug</span>';
+    prompt.innerHTML='<span class="ptext">Alle sechs Würfel werfen – geschlossene Farben fliegen raus.</span>';
+    row.innerHTML='<button class="btn primary" id="b-roll">Würfeln</button>';
+    $("#b-roll").onclick=rollDice;
+    return;
+  }
+
+  var rl=S.roll, t=dieHTML("white",rl.w1)+dieHTML("white",rl.w2)+'<span class="sep"></span>';
+  [RED,YEL,GRN,BLU].forEach(function(c){ t+=dieHTML(c,rl[c]||1,isOut(c)); });
+  tray.innerHTML=t;
+  if(rolled) Array.prototype.forEach.call(tray.querySelectorAll(".die"),function(d,i){
+    d.classList.add("rolling"); d.style.animationDelay=(i*35)+"ms";
+    setTimeout(function(){d.classList.remove("rolling");},600+i*35);
+  });
+
+  var T=S.turn, pi=S.view, isActive=(pi===S.active), p=S.players[pi];
+  var a1done=T.a1[pi], a1skip=T.a1skip[pi];
+
+  if(!a1done && !a1skip){
+    prompt.innerHTML='<span class="pstep">Aktion 1</span><span class="ptext">'+esc(p.name)+
+      ': weiße Summe <b>'+whiteSum()+'</b> in einer beliebigen Reihe – oder auslassen.</span>';
+  } else if(isActive && !T.a2 && !T.a2skip){
+    var chips="";
+    [RED,YEL,GRN,BLU].forEach(function(c){
+      chips+=isOut(c)?'<span class="chip '+c+' off">'+COLNAME[c]+'</span>'
+                     :'<span class="chip '+c+'">'+comboSums(c).join(" / ")+'</span>';
+    });
+    prompt.innerHTML='<span class="pstep">Aktion 2</span><span class="ptext">'+esc(p.name)+
+      ': weiß + Farbe <span class="chips">'+chips+'</span></span>';
+  } else {
+    var waiting=[];
+    S.players.forEach(function(q,i){ if(!T.a1[i]&&!T.a1skip[i]) waiting.push(q.name); });
+    prompt.innerHTML='<span class="ptext">'+(waiting.length
+      ? 'Weiße <b>'+whiteSum()+'</b> offen für: '+esc(waiting.join(", "))
+      : "Alle haben entschieden – Zug beenden.")+'</span>';
+  }
+
+  var btns="";
+  if(!a1done && !a1skip) btns+='<button class="btn" id="b-s1">Weiße '+whiteSum()+' auslassen</button>';
+  else if(isActive && !T.a2 && !T.a2skip) btns+='<button class="btn" id="b-s2">Farbkombi auslassen</button>';
+  btns+='<button class="btn primary" id="b-end">Zug beenden'+(!T.crosses[S.active]?'<small>= Fehlwurf −5</small>':'')+'</button>';
+  row.innerHTML=btns;
+  if($("#b-s1")) $("#b-s1").onclick=function(){ pushUndo(); S.turn.a1skip[S.view]=true; save(); renderAll(); };
+  if($("#b-s2")) $("#b-s2").onclick=function(){ pushUndo(); S.turn.a2skip=true; save(); renderAll(); };
+  $("#b-end").onclick=endTurn;
+}
+
+/* ============ Ergebnis ============ */
+function ranking(players,v){
+  return players.map(function(p,i){ return {p:p,i:i,s:scoreOf(p,v,players)}; })
+         .sort(function(a,b){ return b.s.total-a.s.total; });
+}
+function rankHTML(list,v){
+  var top=list.length?list[0].s.total:0, h="";
+  list.forEach(function(e,k){
+    var bd=e.s.rows.map(function(x,i){ return ["Rot","Gelb","Grün","Blau"][i]+" "+x.pts; }).join(" · ");
+    if(e.s.extra) bd+=" · Bonus +"+e.s.extra;
+    bd+=" · Fehlwürfe −"+e.s.minus;
+    h+='<div class="rrow'+(e.s.total===top?" win":"")+'"><span class="rk">'+(k+1)+'</span>'+
+       '<span><span class="nm">'+esc(e.p.name)+'</span><span class="bd">'+bd+'</span></span>'+
+       '<span class="tot">'+e.s.total+'</span></div>';
+  });
+  return h;
+}
+function showResults(){
+  $("#res-sub").textContent=V().name+" · "+endReason();
+  $("#rlist").innerHTML=rankHTML(ranking(S.players,V()),V());
+  show("res");
+}
+function saveRound(){
+  var a=archive();
+  a.unshift({id:"r"+Date.now(),ts:Date.now(),variant:S.variant,mode:S.mode,
+             notes:$("#notes").value.trim(),
+             players:S.players.map(function(p){
+               return {name:p.name,marks:clone(p.marks),pen:p.pen,bl:clone(p.bl||[]),bonus:clone(p.bonus||{})};
+             })});
+  if(a.length>60) a.length=60;
+  saveArchive(a);
+  toast("Runde gespeichert");
+  $("#savearch").textContent="Gespeichert ✓";
+  setTimeout(function(){ $("#savearch").textContent="Runde speichern"; },2200);
+}
+
+/* ============ Archiv ============ */
+function fmtDate(ts){
+  var d=new Date(ts);
+  return d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"})+", "+
+         d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})+" Uhr";
+}
+function showArchive(){
+  var a=archive(), h="";
+  if(!a.length) h='<p class="empty">Noch keine Runden gespeichert.<br>Nach einer Partie kannst du auf dem Ergebnis-Bildschirm Notizen schreiben und die Runde sichern.</p>';
+  a.forEach(function(rd){
+    var v=VARIANTS[rd.variant]||VARIANTS.classic;
+    var list=ranking(rd.players,v), win=list[0];
+    h+='<button class="arow" data-arch="'+rd.id+'"><span>'+
+       '<span class="at">'+esc(win.p.name)+' · '+win.s.total+' Punkte</span>'+
+       '<span class="am">'+fmtDate(rd.ts)+' · '+v.short+' · '+rd.players.length+' Spieler</span>'+
+       (rd.notes?'<span class="an">'+esc(rd.notes)+'</span>':"")+
+       '</span><span class="ago">›</span></button>';
+  });
+  $("#archlist").innerHTML=h;
+  show("arch");
+}
+function showDetail(id){
+  var a=archive();
+  detail=null;
+  for(var i=0;i<a.length;i++) if(a[i].id===id) detail=a[i];
+  if(!detail){ showArchive(); return; }
+  detailView=0; renderDetail();
+  show("det");
+}
+function renderDetail(){
+  var v=VARIANTS[detail.variant]||VARIANTS.classic;
+  $("#det-title").textContent=v.short+" · "+fmtDate(detail.ts).split(",")[0];
+  var h="";
+  detail.players.forEach(function(p,i){
+    h+='<button class="ptab" data-dp="'+i+'" aria-pressed="'+(i===detailView)+'">'+esc(p.name)+
+       ' <span class="sc tnum">'+scoreOf(p,v,detail.players).total+'</span></button>';
+  });
+  $("#det-tabs").innerHTML=h;
+  $("#det-sheet").innerHTML=sheetHTML(detail.players[detailView],v,detail.players,{readonly:true});
+  $("#det-notes").innerHTML='<span class="seclabel">Endstand</span>'+
+    '<div class="rlist">'+rankHTML(ranking(detail.players,v),v)+'</div>'+
+    (detail.notes?'<div class="notecard"><h3>Notizen</h3><p>'+esc(detail.notes)+'</p></div>':"");
+}
+
+/* ============ Anleitung ============ */
+var RULES={
+  basis:{t:"Grundregeln",h:
+    '<h4>Ziel</h4><p>Jeder Spieler versucht, auf seinem Zettel möglichst viele Zahlen in den vier Farbreihen anzukreuzen. Je mehr Kreuze in einer Farbreihe sind, desto mehr Punkte gibt es dafür. Wer zum Schluss insgesamt die meisten Punkte hat, gewinnt.</p>'+
+    '<h4>Zahlen ankreuzen</h4><p>Die Zahlen in jeder der vier Farbreihen müssen grundsätzlich <b>von links nach rechts</b> angekreuzt werden. Man muss nicht bei der ersten Zahl links beginnen – es ist erlaubt, Zahlen auszulassen, auch mehrere auf einmal. Ausgelassene Zahlen dürfen später nicht mehr angekreuzt werden.</p>'+
+    '<h4>Spielablauf</h4><p>Der aktive Spieler würfelt mit allen sechs Würfeln. Dann werden nacheinander zwei Aktionen ausgeführt:</p>'+
+    '<p><b>1. Aktion:</b> Die Augen der <b>beiden weißen Würfel</b> werden zusammengezählt und angesagt. <b>Jeder</b> Spieler darf nun – muss aber nicht – diese Zahl in einer beliebigen Farbreihe seiner Wahl ankreuzen.</p>'+
+    '<p><b>2. Aktion:</b> Der aktive Spieler – <b>und nur er</b> – darf nun, muss aber nicht, genau einen weißen Würfel mit genau einem beliebigen Farbwürfel kombinieren und die Summe in der entsprechenden Farbreihe ankreuzen.</p>'+
+    '<div class="note"><b>Wichtig:</b> Kreuzt der aktive Spieler weder in der 1. noch in der 2. Aktion etwas an, muss er einen <b>Fehlwurf</b> ankreuzen. Die anderen Spieler bekommen nie einen Fehlwurf – egal ob sie etwas angekreuzt haben oder nicht.</div>'+
+    '<p>Danach ist der nächste Spieler im Uhrzeigersinn an der Reihe.</p>'+
+    '<h4>Eine Reihe abschließen</h4><p>Wer die Zahl ganz rechts ankreuzen möchte (rote 12, gelbe 12, grüne 2, blaue 2), muss vorher <b>mindestens fünf Kreuze</b> in dieser Reihe gemacht haben. Kreuzt er sie an, kreuzt er zusätzlich das Schloss-Feld daneben an – dieses Kreuz zählt bei der Wertung mit. Die Farbreihe ist damit <b>für alle Spieler</b> geschlossen und der zugehörige Farbwürfel kommt sofort aus dem Spiel.</p>'+
+    '<div class="note">Schließt jemand während der 1. Aktion ab, können andere Spieler dieselbe Zahl gleichzeitig ankreuzen und die Reihe ebenfalls abschließen.</div>'+
+    '<h4>Spielende</h4><p>Das Spiel endet sofort, wenn ein Spieler seinen <b>vierten Fehlwurf</b> ankreuzt – oder wenn <b>zwei Reihen</b> abgeschlossen sind, egal von wem.</p>'+
+    '<h4>Wertung</h4><div class="tblwrap"><table class="ptable"><tr><td>Kreuze</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td></tr>'+
+    '<tr><td>Punkte</td><td>1</td><td>3</td><td>6</td><td>10</td><td>15</td><td>21</td><td>28</td><td>36</td><td>45</td><td>55</td><td>66</td><td>78</td></tr></table></div>'+
+    '<p>Jeder Fehlwurf zählt <b>fünf Minuspunkte</b>. Die Punkte der vier Reihen werden addiert, die Minuspunkte abgezogen.</p>'},
+  gemixxt:{t:"gemixxt",h:
+    '<h4>Variante A – Farbsegmente</h4><p>Die Zahlen innerhalb einer Reihe sind auf- bzw. absteigend, genau wie im Originalspiel, aber die Farben sind in kleine Segmente aufgeteilt.</p>'+
+    '<p>Für die <b>2. Aktion</b> zählt die <b>Farbe des Feldes</b>, nicht die Reihe. Dieselbe Farbe kann in mehreren Reihen liegen – du darfst dir aussuchen, wo du ankreuzt.</p>'+
+    '<p>Schließt ein Spieler eine Reihe ab, indem er die Zahl ganz rechts ankreuzt, kommt der Farbwürfel <b>der Reihenfarbe</b> aus dem Spiel und die Reihe ist für alle dicht. Felder dieser Farbe in anderen Reihen können danach nur noch über die weiße Summe angekreuzt werden.</p>'+
+    '<p>Gewertet wird <b>Reihe für Reihe</b>, genau wie im Originalspiel.</p>'+
+    '<h4>Variante B – gemischte Zahlen</h4><p>Die Zahlen stehen wild durcheinander, die Farbreihen bleiben einfarbig. Die Regel „von links nach rechts" gilt trotzdem.</p>'+
+    '<p>Wer die Zahl ganz rechts ankreuzen will, muss vorher mindestens fünf Kreuze in dieser Reihe haben – es muss also sein sechstes Kreuz sein.</p>'+
+    '<div class="note">Weil der aktive Spieler in beiden Aktionen in derselben Reihe ankreuzen darf, kann er dort auch mehr als ein Feld überspringen.</div>'},
+  bonusA:{t:"Bonus A",h:
+    '<h4>Was neu ist</h4><p>Die Spielregeln bleiben exakt wie im Originalspiel. Neu sind <b>12 Bonusfelder</b>, verteilt über die vier Farbreihen, und die <b>Bonusliste</b> unter den Reihen.</p>'+
+    '<h4>Bonusfeld angekreuzt</h4><p>Kreuzt du ein Bonusfeld an, streichst du <b>sofort</b> das nächste freie Feld der Bonusliste ab – immer von links nach rechts.</p>'+
+    '<p>Die Farbe, die dort steht, sagt dir, in welcher Farbreihe du <b>sofort</b> das nächstmögliche Feld ankreuzen darfst.</p>'+
+    '<div class="note"><b>Kettenreaktion:</b> Ist das Feld, das du dadurch ankreuzt, wieder ein Bonusfeld, geht es sofort weiter. Die App löst solche Ketten automatisch auf.</div>'+
+    '<h4>Geschlossene Farben</h4><p>Wird eine Farbe geschlossen, verfallen alle Felder dieser Farbe in der Bonusliste sofort. Sie werden ab dann einfach übersprungen.</p>'+
+    '<p>In einer abgeschlossenen Reihe kann unter keinen Umständen noch ein Feld angekreuzt werden – ein Bonus, der dorthin führen würde, verfällt.</p>'+
+    '<h4>Spielende und Wertung</h4><p>Bleiben exakt wie im Originalspiel. Es ist möglich, dass ein Spieler mit einem Bonuskreuz eine Reihe abschließt und dadurch das Spiel beendet.</p>'},
+  bonusB:{t:"Bonus B",h:
+    '<h4>Was neu ist</h4><p>Es gibt <b>fünf verschiedene Bonustypen</b>, jeden davon zweimal auf dem Zettel. Erst wenn du <b>beide</b> Felder eines Typs angekreuzt hast, bekommst du den Bonus.</p>'+
+    '<h4>Die Bonustypen</h4><ul>'+
+    '<li><b>Kreis – 2 Kreuze:</b> Du kreuzt sofort 2 Felder in der Reihe an, in der du aktuell die wenigsten Kreuze hast.</li>'+
+    '<li><b>Raute – 4 Farben:</b> Du kreuzt sofort in jeder Farbreihe ein Feld an, jeweils das nächstmögliche.</li>'+
+    '<li><b>Quadrat – ×2:</b> Die Punkte für die Reihe mit den wenigsten Kreuzen werden verdoppelt.</li>'+
+    '<li><b>Achteck – +13:</b> Du bekommst 13 Zusatzpunkte.</li>'+
+    '<li><b>Stern – Fehlwürfe 0:</b> Deine Fehlwürfe zählen keine Minuspunkte.</li></ul>'+
+    '<div class="note">Bonuskreuze, die nicht gemacht werden können – etwa weil die Reihe schon abgeschlossen ist – verfallen ersatzlos.</div>'+
+    '<h4>Reihe per Bonus schließen</h4><p>Mit einem Bonuskreuz darf das letzte Feld einer Farbreihe angekreuzt und die Reihe so abgeschlossen werden. Auf diese Weise kann auch das Spielende eintreten.</p>'+
+    '<h4>Spielende</h4><p>Wie im Originalspiel: zwei Reihen dicht oder der 4. Fehlwurf.</p>'},
+  app:{t:"Die App",h:
+    '<h4>Spielweisen</h4><p><b>Mit Würfeln:</b> Die App würfelt, sagt an, wer was ankreuzen darf, markiert die möglichen Felder orange und vergibt Fehlwürfe automatisch.</p>'+
+    '<p><b>Nur Zettel:</b> Ihr würfelt mit echten Würfeln, die App prüft nur die Kreuze und rechnet die Punkte.</p>'+
+    '<h4>Kreuze korrigieren</h4><p>Ein Tipp auf das <b>letzte</b> Kreuz einer Reihe nimmt es zurück – auch dann, wenn damit versehentlich eine Reihe geschlossen wurde. Die Reihe öffnet sich wieder und der Farbwürfel kommt zurück ins Spiel.</p>'+
+    '<p>Der Knopf <b>Rückgängig</b> macht ganze Schritte rückgängig, inklusive Würfeln und Bonusketten.</p>'+
+    '<h4>Spieler wechseln</h4><p>Oben auf den Namen tippen. Der orange Punkt zeigt, wer aktiver Spieler ist.</p>'+
+    '<h4>Runden aufheben</h4><p>Nach der Auswertung kannst du Notizen schreiben und die Runde speichern. Über <b>Gespeicherte Runden</b> auf dem Startbildschirm siehst du später alle Zettel und Notizen wieder.</p>'+
+    '<h4>Speicherort</h4><p>Alles bleibt auf diesem Gerät im Browser gespeichert. Löschst du die Browserdaten, sind auch die gespeicherten Runden weg.</p>'}
+};
+var RORDER=["basis","gemixxt","bonusA","bonusB","app"];
+function openRules(tab){
+  rulesTab=tab||(S?({gemixxtA:"gemixxt",gemixxtB:"gemixxt",bonusA:"bonusA",bonusB:"bonusB"}[S.variant]||"basis"):"basis");
+  renderRules(); $("#rules").showModal();
+}
+function renderRules(){
+  $("#rtabs").innerHTML=RORDER.map(function(k){
+    return '<button class="rtab" data-rt="'+k+'" aria-pressed="'+(k===rulesTab)+'">'+RULES[k].t+'</button>';
+  }).join("");
+  $("#rulesbody").innerHTML=RULES[rulesTab].h;
+  $("#rules").querySelector(".modal").scrollTop=0;
+}
+
+/* ============ Setup-UI ============ */
+function renderVariants(){
+  $("#variants").innerHTML=VORDER.map(function(id){
+    var v=VARIANTS[id];
+    var bars=v.rows.map(function(r){
+      var stops=r.cells.map(function(c,i){
+        return "var(--c-"+c.c+") "+(i/11*100).toFixed(1)+"% "+((i+1)/11*100).toFixed(1)+"%";
+      }).join(",");
+      return '<i style="background:linear-gradient(90deg,'+stops+')"></i>';
+    }).join("");
+    return '<button class="vcard" data-v="'+id+'" aria-pressed="'+(setup.variant===id)+'">'+
+           '<span><span class="vn">'+v.name+'</span><span class="vd">'+v.desc+'</span></span>'+
+           '<span class="mini">'+bars+'</span></button>';
+  }).join("");
+}
+function renderPlayers(){
+  $("#plist").innerHTML=setup.names.map(function(n,i){
+    return '<div class="prow"><span class="idx">'+(i+1)+'</span>'+
+           '<input id="pn'+i+'" value="'+esc(n)+'" maxlength="14" data-i="'+i+'" autocomplete="off">'+
+           (setup.names.length>1?'<button class="del" data-del="'+i+'" aria-label="entfernen">×</button>':'<span></span>')+
+           '</div>';
+  }).join("");
+  $("#addp").disabled=setup.names.length>=6;
+}
+function renderModeHint(){
+  $("#modehint").textContent = setup.mode==="dice"
+    ? "Die App würfelt, sagt an, wer was ankreuzen darf, und rechnet Fehlwürfe automatisch."
+    : "Nur die Zettel. Ihr würfelt mit echten Würfeln, die App zählt und prüft die Kreuze.";
+}
+function refreshSetup(){
+  var st=load(), n=archive().length;
+  $("#resume").hidden=!(st&&st.players);
+  if(st&&st.players) $("#resume").textContent="Laufendes Spiel fortsetzen ("+(VARIANTS[st.variant]||{short:"?"}).short+", "+st.players.length+" Spieler)";
+  $("#ql-arch").textContent=n?("Gespeicherte Runden ("+n+")"):"Gespeicherte Runden";
+  renderVariants(); renderPlayers(); renderModeHint();
+}
+
+/* ============ Events ============ */
+document.addEventListener("click",function(e){
+  var t=e.target.closest("button"); if(!t) return;
+
+  if(t.dataset.v){ setup.variant=t.dataset.v; renderVariants(); return; }
+  if(t.dataset.mode){
+    setup.mode=t.dataset.mode;
+    Array.prototype.forEach.call($("#modeseg").children,function(b){ b.setAttribute("aria-pressed",b.dataset.mode===setup.mode); });
+    renderModeHint(); return; }
+  if(t.dataset.del!==undefined){ setup.names.splice(+t.dataset.del,1); renderPlayers(); return; }
+  if(t.id==="addp"){ setup.names.push("Spieler "+(setup.names.length+1)); renderPlayers();
+    var el=$("#pn"+(setup.names.length-1)); if(el){el.focus();el.select();} return; }
+  if(t.id==="start"){ startGame(); return; }
+  if(t.id==="resume"){ var st=load(); if(st&&st.players){ S=st; undoStack=[]; show("game"); renderAll(); } return; }
+  if(t.id==="ql-rules"||t.id==="btn-rules"){ openRules(t.id==="ql-rules"?"basis":null); return; }
+  if(t.id==="ql-arch"){ showArchive(); return; }
+  if(t.dataset.rt){ rulesTab=t.dataset.rt; renderRules(); return; }
+  if(t.id==="rclose"||t.id==="rclose2"){ $("#rules").close(); return; }
+
+  if(t.dataset.p!==undefined){ S.view=+t.dataset.p; save(); renderAll(); return; }
+  if(t.dataset.pen!==undefined && !t.disabled){ togglePen(S.view,+t.dataset.pen); return; }
+  if(t.classList.contains("cell") && !t.disabled && t.closest("#sheet")){ tapCell(+t.dataset.r,+t.dataset.i); return; }
+  if(t.id==="btn-undo"){ doUndo(); return; }
+  if(t.id==="btn-menu"){ show("setup"); refreshSetup(); return; }
+
+  if(t.id==="savearch"){ saveRound(); refreshSetup(); return; }
+  if(t.id==="again"){ setup.variant=S.variant; setup.mode=S.mode;
+    setup.names=S.players.map(function(p){return p.name;}); startGame(); return; }
+  if(t.id==="tomenu"){ show("setup"); refreshSetup(); return; }
+
+  if(t.dataset.arch){ showDetail(t.dataset.arch); return; }
+  if(t.id==="arch-back"){ show("setup"); refreshSetup(); return; }
+  if(t.id==="det-back"){ showArchive(); return; }
+  if(t.dataset.dp!==undefined){ detailView=+t.dataset.dp; renderDetail(); return; }
+  if(t.id==="det-del"){
+    if(confirm("Diese gespeicherte Runde löschen?")){
+      saveArchive(archive().filter(function(x){return x.id!==detail.id;}));
+      showArchive(); refreshSetup();
+    }
+    return; }
+});
+document.addEventListener("input",function(e){
+  if(e.target.dataset && e.target.dataset.i!==undefined) setup.names[+e.target.dataset.i]=e.target.value;
+});
+$("#rules").addEventListener("click",function(e){ if(e.target===this) this.close(); });
+
+/* ============ Start ============ */
+function boot(data){
+  if(data && data.S){
+    S=data.S; setup=data.setup||setup; refreshSetup();
+    if(data.screen==="game"){ show("game"); renderAll(); return; }
+    if(data.screen==="res"){ showResults(); return; }
+  }
+  refreshSetup(); show("setup");
+}
+if(window.claude&&window.claude.hot){
+  window.claude.hot.snapshot(function(){
+    var scr="setup";
+    if(!$("#scr-game").hidden) scr="game"; else if(!$("#scr-res").hidden) scr="res";
+    return {S:S,setup:setup,screen:scr};
+  });
+}
+if(window.claude&&window.claude.hot&&window.claude.hot.ready) window.claude.hot.ready(boot);
+else boot((window.claude&&window.claude.hot&&window.claude.hot.data)||{});
+
+/* Nur in der selbst gehosteten Fassung: dort liegt ein Manifest daneben. */
+if("serviceWorker" in navigator && document.querySelector('link[rel="manifest"]')){
+  window.addEventListener("load",function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+}
+})();
+</script>
+
+</body>
+</html>
