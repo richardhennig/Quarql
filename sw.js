@@ -1,6 +1,6 @@
 /* Qwixx Zettel – Offline-Cache.
    Bei einer neuen Version die Zahl in CACHE erhöhen, dann laden alle Geräte neu. */
-var CACHE = "qwixx-v1";
+var CACHE = "qwixx-v2";
 var ASSETS = [
   "./", "./index.html", "./manifest.webmanifest",
   "./icon-192.png", "./icon-512.png", "./icon-512-maskable.png",

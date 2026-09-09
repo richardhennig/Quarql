@@ -224,6 +224,19 @@ button{border:0;background:none;cursor:pointer}
 .bb .gt{font:700 9.5px/1.15 Archivo,sans-serif;text-align:center;color:var(--ink-2)}
 
 .strip{margin-top:5px;display:grid;gap:5px}
+.ptsrow{display:grid;grid-template-columns:32px repeat(12,1fr);gap:2px;padding:5px 6px;
+  background:var(--surface);border-radius:9px;border:1px solid var(--line-soft)}
+.ptslab{display:flex;flex-direction:column;justify-content:center;gap:5px;
+  font:700 8px/1 Archivo,sans-serif;color:var(--muted);text-transform:uppercase}
+.pcol{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:var(--surface-2);border-radius:4px;padding:3px 0 6px}
+.pcol i{font:600 8.5px/1 Archivo,sans-serif;font-style:normal;color:var(--muted)}
+.pcol b{font:800 12px/1 Archivo,sans-serif;font-variant-numeric:tabular-nums;color:var(--ink)}
+.pcol.at{background:color-mix(in srgb,var(--accent) 13%,var(--surface-2))}
+.pmk{position:absolute;left:2px;right:2px;bottom:2px;height:3px;display:flex;gap:1px}
+.pmk span{flex:1;border-radius:1.5px}
+.pmk span.red{background:var(--c-red)} .pmk span.yellow{background:var(--c-yellow)}
+.pmk span.green{background:var(--c-green)} .pmk span.blue{background:var(--c-blue)}
 .pens{display:flex;align-items:center;gap:7px;padding:6px 8px;background:var(--surface);border-radius:9px;
   border:1px solid var(--line-soft)}
 .pens .pl{font:600 10.5px/1 Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);flex:1}
@@ -831,7 +844,22 @@ function sheetHTML(p,v,players,opts){
   }
 
   var sc=scoreOf(p,v,players);
-  h+='<div class="strip"><div class="pens"><span class="pl">Fehlwürfe je −5</span>';
+
+  /* Punktetabelle wie auf der Papierkarte. Der farbige Strich unter einer Spalte
+     zeigt, welche Reihe gerade bei dieser Anzahl Kreuze steht. */
+  var counts=[0,1,2,3].map(function(r){ return cnt(p,r)+(p.marks[r][10]?1:0); });
+  h+='<div class="strip"><div class="ptsrow">'+
+     '<span class="ptslab"><span>Kreuze</span><span>Punkte</span></span>';
+  for(var q=1;q<=12;q++){
+    var here=[];
+    counts.forEach(function(c,r){ if(c===q) here.push(v.rows[r].lock); });
+    h+='<span class="pcol'+(here.length?" at":"")+'"><i>'+q+'x</i><b>'+POINTS[q]+'</b>'+
+       (here.length?'<span class="pmk">'+here.map(function(c){return '<span class="'+c+'"></span>';}).join("")+'</span>':"")+
+       '</span>';
+  }
+  h+='</div>';
+
+  h+='<div class="pens"><span class="pl">Fehlwürfe je −5</span>';
   for(var k=0;k<4;k++)
     h+='<button class="penbox'+(p.pen>k?" on":"")+'" data-pen="'+k+'"'+(opts.readonly?' disabled':'')+
        ' aria-label="Fehlwurf '+(k+1)+'"></button>';
