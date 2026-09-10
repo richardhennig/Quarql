@@ -1,7 +1,7 @@
-# qwixx_play-cards
+# Test_play-cards
 Play cards and more to play Qwixx with friends and family without wasting paper!
 
-QWIXX ZETTEL – App zum Selbst-Hosten
+ZETTEL – App zum Selbst-Hosten
 =====================================
 
 In diesem Repository liegt die fertige App. Sie besteht nur aus Dateien –
