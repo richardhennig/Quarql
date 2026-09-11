@@ -1,7 +1,7 @@
 # Test_play-cards
 Play cards and more to play Qwixx with friends and family without wasting paper!
 
-ZETTEL – App zum Selbst-Hosten
+Quarql ZETTEL – App zum Selbst-Hosten
 =====================================
 
 In diesem Repository liegt die fertige App. Sie besteht nur aus Dateien –
@@ -48,7 +48,7 @@ Wenn neue Fassung: die alten Dateien durch die neuen
 ersetzen. Damit die Handys die neue Fassung auch wirklich laden, in der
 Datei sw.js die erste Zeile mit der Versionsnummer erhöhen:
 
-    var CACHE = "qwixx-v1";   ->   var CACHE = "qwixx-v2";
+    var CACHE = "quarqle-v1";   ->   var CACHE = "quarqle-v2";
 
 
 -------------------------------------------------------------------
