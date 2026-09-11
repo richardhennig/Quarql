@@ -1,5 +1,5 @@
 # Test_play-cards
-Play cards and more to play Qwixx with friends and family without wasting paper!
+Play cards and more to play Quarql with friends and family without wasting paper!
 
 Quarql ZETTEL – App zum Selbst-Hosten
 =====================================
@@ -59,7 +59,3 @@ Laufendes Spiel und gespeicherte Runden liegen im Speicher des
 Browsers auf dem jeweiligen Gerät. Sie werden nicht übertragen und
 sind für niemanden sonst sichtbar. Wer die Browserdaten löscht oder
 die App deinstalliert, verliert auch die gespeicherten Runden.
-
-Qwixx ist ein Spiel von Steffen Benndorf, erschienen im Nürnberger
-Spielkarten Verlag. Diese App ist ein privater digitaler Ersatz für
-die Papierzettel und ersetzt nicht das Spielmaterial.
