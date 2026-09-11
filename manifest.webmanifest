@@ -1,7 +1,7 @@
 {
-  "name": "Qwixx Zettel",
-  "short_name": "Qwixx",
-  "description": "Digitaler Spielzettel für Qwixx – Classic, gemixxt und Bonus.",
+  "name": "Quarql Zettel",
+  "short_name": "Quarql",
+  "description": "Digitaler Spielzettel für Quarql – Classic, gemixxt und Bonus.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
